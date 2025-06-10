@@ -14,7 +14,15 @@
         </header>
 
         <section class="selection-area">
-            <h2>出題範囲を選択</h2>
+            <h2>
+                出題範囲を選択
+                <span id="infoIcon" class="info-icon">ⓘ</span> </h2>
+
+            <div id="infoPanel" class="info-panel hidden"> <h3>アプリ情報</h3>
+                <p><strong>最終更新日:</strong> <span id="lastUpdatedDate"></span></p>
+                <p><strong>更新内容:</strong> <span id="updateContent"></span></p>
+                <p class="disclaimer">問題の一部は山川出版社の「山川一問一答 世界史」を参考に作成しています。<br>Webページ作成：Kitsuka</p>
+            </div>
 
             <div class="question-count-selection">
                 <h3>出題数を選択</h3>
@@ -36,7 +44,10 @@
 
             <div class="chapters-container">
                 </div>
-            <button id="startButton">学習開始</button>
+            <div class="selection-buttons">
+                <button id="startButton">学習開始</button>
+                <button id="resetSelectionButton" class="secondary-button">選択リセット</button>
+            </div>
         </section>
 
         <section class="card-area hidden">
@@ -69,7 +80,10 @@
                 <ul id="incorrectWordsContainer">
                     </ul>
             </div>
-            <button id="backToSelectionButton" class="secondary-button">範囲選択に戻る</button>
+            <div class="result-buttons">
+                <button id="restartQuizButton" class="main-action-button">もう1回</button>
+                <button id="backToSelectionButton" class="secondary-button">範囲選択に戻る</button>
+            </div>
         </section>
 
         <p id="message" class="hidden"></p>
