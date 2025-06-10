@@ -19,24 +19,51 @@ body {
     max-width: 600px;
     min-height: 500px; /* コンテンツの変動によるガタつきを抑えるために最小高さを設定 */
     box-sizing: border-box;
-    position: relative; /* header内の絶対配置の基準となる */
+    position: relative; /* 子要素の絶対配置の基準、または相対的な配置の基準として使う */
+}
+
+/* ★HTML側の変更を推奨: <button id="backToSelectionButton" class="secondary-button header-back-button hidden">を
+   <div id="app"> または <body> 直下、または .container の直下など、
+   独立した位置に配置し、以下のCSSで固定表示させることを推奨します。
+   例: <div id="app">...<button class="header-back-button">...</button></div> */
+.header-back-button {
+    position: fixed; /* 画面に固定して、他の要素と重ならないようにする */
+    top: 20px; /* 画面上端から */
+    right: 20px; /* 画面右端から */
+    
+    padding: 8px 15px;
+    font-size: 0.85em;
+    z-index: 1000; /* 最前面に表示 */
+    white-space: nowrap;
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.header-back-button:hover {
+    background-color: #7f8c8d;
 }
 
 header {
-    position: relative; /* 子要素の絶対配置の基準となる */
     display: flex;
-    justify-content: center; 
-    align-items: flex-start; 
+    justify-content: space-between; /* タイトルと進捗を左右に配置 */
+    align-items: flex-start; /* 上揃え */
     padding-bottom: 0; 
     margin-bottom: 25px; 
+    width: 100%; /* 親要素の幅いっぱいに広げる */
+    box-sizing: border-box;
 }
 
 h1 {
     color: #2c3e50;
-    text-align: center; 
+    text-align: left; /* 左寄せ */
     margin: 0; 
-    flex-shrink: 1; 
-    min-width: fit-content; 
+    flex-grow: 1; /* スペースがあれば広がる */
+    min-width: fit-content; /* 内容に合わせて最小幅を確保 */
+    padding-right: 10px; /* 進捗表示との間隔 */
 }
 
 h2 {
@@ -53,19 +80,6 @@ h2 {
 /* ----- 各セクションの共通スタイル (selection-area, card-area, quizResult) ----- */
 section {
     margin-bottom: 30px;
-}
-
-/* 学習中の画面に表示される「範囲選択に戻る」ボタンのスタイル */
-.header-back-button {
-    position: absolute; 
-    right: -80px; /* PC/タブレット用: 右端から外側に押し出す（ボタンの幅より少し大きめに） */
-    top: -15px;  /* PC/タブレット用: 上端から外側に押し出す */
-    
-    padding: 8px 15px;
-    font-size: 0.85em;
-    z-index: 10; /* 他の要素より手前に表示されるように */
-    white-space: nowrap;
-    flex-shrink: 0; 
 }
 
 /* iマークのスタイル */
@@ -137,9 +151,12 @@ section {
 
 /* ----- 進捗表示のスタイル ----- */
 .progress-container {
-    width: 100%;
-    margin-bottom: 20px;
+    /* header内でflexアイテムとして扱うため、widthは不要になる場合がある */
+    /* width: 100%; */ 
+    margin-bottom: 0; /* header内でflexboxで配置されるため */
     text-align: right;
+    flex-shrink: 0; /* 縮まないようにする */
+    min-width: 120px; /* 最小幅を確保 (例: "10/10問進行" が収まる程度) */
 }
 
 .question-number-display {
@@ -172,7 +189,7 @@ section {
     flex-direction: column;
     align-items: flex-start;    
     width: 100%;
-    height: 200px; 
+    height: 200px; /* 固定高さを維持、内容で溢れる場合はスクロール */
     padding: 10px 0;
     box-sizing: border-box;
     padding-left: 2%; /* 少し小さくする */
@@ -190,7 +207,7 @@ section {
     max-width: 100%; 
     flex-shrink: 0;
     color: black; 
-    overflow-y: auto; 
+    overflow-y: auto; /* 高さよりテキストが長い場合スクロール */
     max-height: 100%; 
 }
 
@@ -237,7 +254,7 @@ button:hover {
     padding: 12px 20px;
     font-size: 1.1em;
     margin: 10px 5px; /* 左右のマージンを小さく */
-    /* width: 120px; */ /* 固定幅を解除 */
+    /* width: 120px; */ /* 固定幅を解除することで、コンテンツに合わせて幅が変わる */
     box-sizing: border-box; /* paddingを含めてwidthを計算 */
 }
 
@@ -453,7 +470,8 @@ button:hover {
     flex-wrap: wrap; /* 小さい画面で折り返す */
 }
 
-/* ----- 範囲選択に戻るボタンのスタイル ----- */
+/* ----- 範囲選択に戻るボタンのスタイル (HTML要素が固定位置にある場合のみ有効) ----- */
+/* secondary-button クラスは共通スタイルとして残す */
 .secondary-button {
     background-color: #95a5a6;
     color: white;
@@ -471,7 +489,7 @@ button:hover {
 }
 
 /* 個別調整 */
-#backToSelectionButton,
+/* backToSelectionButton は header-back-button で別途定義したため、ここからは削除 */
 #startButton,
 #resetSelectionButton,
 #restartQuizButton {
@@ -635,12 +653,46 @@ button:hover {
 /* ★レスポンシブデザインのためのメディアクエリ */
 /* ==================================================================== */
 
+/* 画面幅が768px以下の場合 (タブレット縦向き、一部の小さいPC) */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px; /* 全体のパディングを少し減らす */
+        max-width: 95%; /* 画面幅いっぱいに近づける */
+    }
+
+    h1 {
+        font-size: 1.8em; /* タイトルを少し小さく */
+    }
+
+    .card-text {
+        font-size: 1.3em; /* 問題文のフォントサイズを調整 */
+    }
+
+    .score-button {
+        padding: 10px 18px; /* ボタンのパディングを調整 */
+        font-size: 1em; /* ボタンのフォントサイズを調整 */
+        margin: 8px 4px; /* ボタンのマージンを調整 */
+    }
+}
+
 /* 画面幅が480px以下の場合 (一般的なスマホ縦向き) */
 @media (max-width: 480px) {
     .container {
-        width: 95%; /* コンテナの幅を少し広げる */
-        padding-left: 15px;
-        padding-right: 15px;
+        width: 98%; /* コンテナの幅をさらに広げる */
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    h1 {
+        font-size: 1.5em; /* タイトルをさらに小さく */
+        margin-right: 5px; /* 進捗表示との間隔を狭める */
+    }
+
+    .question-number-display {
+        font-size: 0.9em; /* 進捗表示のフォントを小さく */
+    }
+    .progress-bar-outer {
+        height: 6px; /* プログレスバーの高さも小さく */
     }
 
     .card-content-wrapper {
@@ -649,35 +701,40 @@ button:hover {
     }
 
     .card-text {
-        font-size: 1.25em; /* 問題文のフォントサイズをさらに小さく */
+        font-size: 1.2em; /* 問題文のフォントサイズをさらに小さく */
     }
 
-    .header-back-button {
-        right: -10px; /* ★ユーザーからのご提案を反映 */
-        top: -40px;  /* ★ユーザーからのご提案を反映 */
-        padding: 6px 12px; /* ボタンのパディングも少し小さく */
-        font-size: 0.8em; /* ボタンのフォントサイズも小さく */
-    }
+    /* header-back-buttonはfixedなので、ここでは基本調整不要ですが、
+       もしposition:absolute;に戻すならここを再定義します */
+    /* .header-back-button {
+        right: -10px; 
+        top: -40px; 
+        padding: 6px 12px; 
+        font-size: 0.8em; 
+    } */
 
     .button-group {
         gap: 5px; /* ボタン間のスペースをさらに小さく */
     }
 
     .score-button {
-        padding: 10px 15px; /* ボタンのパディングを小さく */
-        font-size: 1em; /* ボタンのフォントサイズを小さく */
+        padding: 8px 12px; /* ボタンのパディングを小さく */
+        font-size: 0.9em; /* ボタンのフォントサイズを小さく */
         margin: 5px 3px; /* ボタンのマージンをさらに小さく */
     }
 }
 
-/* 画面幅が400px以下の場合 (特に細いスマホ、ボタンを縦に並べる) */
-@media (max-width: 400px) {
+/* 画面幅が360px以下の場合 (特に細いスマホ、ボタンを縦に並べる) */
+@media (max-width: 360px) {
     .button-group {
         flex-direction: column; /* ボタンを縦に並べる */
         align-items: center; /* 中央揃え */
     }
     .score-button {
-        width: 90%; /* ボタンの幅を広げて見やすくする */
+        width: 95%; /* ボタンの幅を広げて見やすくする */
         margin: 5px 0; /* 上下のマージンを調整 */
+    }
+    .card-text {
+        font-size: 1.1em; /* さらに小さく */
     }
 }
