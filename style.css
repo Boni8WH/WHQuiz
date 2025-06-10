@@ -583,12 +583,18 @@ button:hover {
 .unit-item input[type="checkbox"][disabled] + label {
     color: #a0a0a0;
     cursor: not-allowed;
+    font-size: 0.85em; /* ここを追加または修正 */
 }
 
 /* 「全て選択」ボタンが無効化された場合の見た目 */
 .select-all-chapter-btn[disabled] {
-    background-color: #cccccc !important; /* !important で優先度を上げる */
-    color: #666666 !important;
-    cursor: not-allowed !important;
+    background-color: #d1d8dc; /* 前回の調整でこの色になっています */
+    color: #8c8c8c; /* 前回の調整でこの色になっています */
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: not-allowed;
+    font-size: 0.85em; /* 元々このサイズ */
     box-shadow: none;
+    transition: none;
 }
