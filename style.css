@@ -135,20 +135,19 @@ section {
 
 /* ----- 単語カード表示エリアのスタイル ----- */
 .card-area {
-    /* height: 380px; */ /* ★削除: 高さを固定せず、Flexboxで柔軟に */
-    min-height: 280px; /* ★修正: 最小高さを確保 */
-    max-height: 500px; /* ★追加: 最大高さを設定（過度に伸びるのを防ぐ） */
+    min-height: 280px; 
+    max-height: 550px; /* ★修正: 最大高さを増やして縦に広がる余裕を与える */
     display: flex;
-    flex-direction: column; /* ★修正: 子要素を縦に並べる */
-    justify-content: space-between; /* ★修正: 子要素を上下に均等配置 */
-    align-items: center; /* flex-direction: column; のため、左右中央寄せ */
+    flex-direction: column; 
+    justify-content: space-between; 
+    align-items: center; 
     margin-top: 20px;
     border: 2px solid #bdc3c7;
     border-radius: 8px;
     padding: 20px;
     box-sizing: border-box;
     position: relative; 
-    width: 100%; /* 親要素の幅いっぱいに広げる */
+    width: 100%; 
 }
 
 /* ----- 進捗表示のスタイル ----- */
@@ -184,17 +183,17 @@ section {
 
 /* ----- 問題と答えのラッパーのスタイル ----- */
 .card-content-wrapper {
-    flex-grow: 1; /* ★修正: 親の空きスペースを埋めるように伸びる */
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
     align-items: flex-start;    
     width: 100%;
-    /* height: 200px; */ /* ★削除: 高さを固定しない */
     padding: 10px 0;
     box-sizing: border-box;
     padding-left: 2%; 
     padding-right: 2%; 
-    overflow-y: auto; /* ★追加: テキストが長い場合、このエリアでスクロール */
+    overflow-y: auto; 
+    max-height: calc(100% - 80px); /* ★修正: card-areaの高さからボタンエリアの高さを引いた分を最大にする */
 }
 
 /* ----- 問題文と答えのテキストスタイル ----- */
@@ -208,8 +207,7 @@ section {
     max-width: 100%; 
     flex-shrink: 0;
     color: black; 
-    /* overflow-y: auto; */ /* card-content-wrapperに移動 */
-    max-height: 100%; /* 親の高さに応じて調整 */
+    max-height: 100%; 
 }
 
 #question {
@@ -255,7 +253,6 @@ button:hover {
     padding: 12px 20px;
     font-size: 1.1em;
     margin: 10px 5px; 
-    /* width: 120px; */ 
     box-sizing: border-box; 
 }
 
@@ -696,6 +693,7 @@ button:hover {
     .card-content-wrapper {
         padding-left: 5px; 
         padding-right: 5px;
+        max-height: calc(100% - 70px); /* ★修正: スマホ向けにボタンエリアの高さを考慮して調整 */
     }
 
     .card-text {
@@ -703,19 +701,10 @@ button:hover {
     }
 
     .card-area {
-        min-height: 250px; /* スマホ向けに最小高さを調整 */
-        max-height: 400px; /* スマホ向けに最大高さを調整 */
-        padding: 15px; /* パディングも調整 */
+        min-height: 250px; 
+        max-height: 450px; /* ★修正: スマホ向けに最大高さを調整 */
+        padding: 15px; 
     }
-
-    /* header-back-button は fixed なのでメディアクエリ内での位置調整は不要ですが、
-       デザインの統一感を保つためにサイズなどは調整しても良いでしょう。 */
-    /*
-    .header-back-button {
-        padding: 6px 12px; 
-        font-size: 0.8em; 
-    }
-    */
 
     .button-group {
         gap: 5px; 
