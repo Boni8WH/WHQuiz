@@ -1,6 +1,9 @@
-// 単語データは外部ファイルから読み込むため、ここでは定義しない
-let wordData = []; // 初期化
-let chapterData = {}; // 章とそれに属する単元の情報を格納するオブジェクト
+// ローカルストレージのキー
+const LOCAL_STORAGE_KEYS = {
+    SELECTED_UNITS: 'selectedUnits',
+    QUESTION_COUNT: 'questionCount',
+    QUIZ_PROGRESS: 'quizProgress'
+};
 
 // アプリの要素を取得
 const selectionArea = document.querySelector('.selection-area');
@@ -10,14 +13,12 @@ const cardArea = document.querySelector('.card-area');
 const questionText = document.getElementById('question');
 const answerText = document.getElementById('answer');
 
-const showAnswerButton = document.getElementById('showAnswerButton');       // 「答えを見る」ボタン
-const correctButton = document.getElementById('correctButton');             // 「正解」ボタン
-const incorrectButton = document.getElementById('incorrectButton');         // 「不正解」ボタン
+const showAnswerButton = document.getElementById('showAnswerButton');
+const correctButton = document.getElementById('correctButton');
+const incorrectButton = document.getElementById('incorrectButton');
 
 const messageText = document.getElementById('message');
-const backToSelectionButton = document.getElementById('backToSelectionButton'); // 結果画面の「範囲選択に戻る」ボタン
-
-// ヘッダーに移動した「範囲選択に戻る」ボタンを正しく取得
+const backToSelectionButton = document.getElementById('backToSelectionButton');
 const backToSelectionFromCardButton = document.getElementById('backToSelectionFromCardButton');
 
 // 進捗表示の要素を取得
@@ -27,14 +28,6 @@ const progressBar = document.getElementById('progressBar');
 // 出題数選択ラジオボタンの取得
 const questionCountRadios = document.querySelectorAll('input[name="questionCount"]');
 
-let currentWordIndex = 0;
-let selectedWords = [];
-let wordsForQuiz = [];
-
-let correctCount = 0;
-let incorrectCount = 0;
-let incorrectWords = [];
-
 // Quiz Result Section Elements
 const quizResult = document.getElementById('quizResult');
 const totalQuestionsCountSpan = document.getElementById('totalQuestionsCount');
@@ -43,6 +36,38 @@ const incorrectCountSpan = document.getElementById('incorrectCount');
 const accuracyRateSpan = document.getElementById('accuracyRate');
 const incorrectWordListSection = document.getElementById('incorrectWordList');
 const incorrectWordsContainer = document.getElementById('incorrectWordsContainer');
+
+// 新しいボタン要素の取得
+const restartQuizButton = document.getElementById('restartQuizButton');
+const resetSelectionButton = document.getElementById('resetSelectionButton');
+
+// アプリ情報関連の要素
+const infoIcon = document.getElementById('infoIcon');
+const infoPanel = document.getElementById('infoPanel');
+const lastUpdatedDateSpan = document.getElementById('lastUpdatedDate');
+const updateContentSpan = document.getElementById('updateContent');
+
+
+let wordData = []; // CSVから読み込んだ全単語データ
+let chapterData = {}; // 章と単元で整理された単語データ
+
+let currentWordIndex = 0;
+let selectedWords = []; // ユーザーが選択した単元から抽出された単語
+let wordsForQuiz = []; // 実際にクイズに使用される単語
+
+let correctCount = 0;
+let incorrectCount = 0;
+let incorrectWords = [];
+
+// 最後に選択された単元の番号と出題数を保存する変数 (ローカルストレージで管理するため、ここでは初期化のみ)
+let lastSelectedUnitNumbers = [];
+let lastSelectedQuestionCount = '10';
+
+// アプリ情報のデータ
+const appInfo = {
+    lastUpdated: '2025年6月10日', // 今日の日付を記載
+    updateLog: 'もう1回ボタンと選択リセットボタンを追加。情報アイコンを実装。' // 今回の更新内容を記載
+};
 
 
 // ----------------------------------------------------
@@ -55,7 +80,8 @@ function showSelectionArea() {
     messageText.classList.add('hidden');
     messageText.textContent = '';
     startButton.textContent = '学習開始';
-    backToSelectionFromCardButton.classList.add('hidden'); 
+    backToSelectionFromCardButton.classList.add('hidden');
+    infoPanel.classList.add('hidden'); // 選択画面に戻る際に情報パネルを非表示にする
 }
 
 function showCardArea() {
@@ -65,6 +91,7 @@ function showCardArea() {
     messageText.classList.add('hidden');
     messageText.textContent = '';
     backToSelectionFromCardButton.classList.remove('hidden');
+    infoPanel.classList.add('hidden'); // 学習画面に遷移する際に情報パネルを非表示にする
 }
 
 function showQuizResult() {
@@ -72,8 +99,8 @@ function showQuizResult() {
     cardArea.classList.add('hidden');
     quizResult.classList.remove('hidden');
     messageText.classList.remove('hidden');
-    startButton.textContent = 'もう一度学習する';
     backToSelectionFromCardButton.classList.add('hidden');
+    infoPanel.classList.add('hidden'); // 結果画面に遷移する際に情報パネルを非表示にする
 }
 
 // ----------------------------------------------------
@@ -81,6 +108,10 @@ function showQuizResult() {
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     showSelectionArea();
+
+    // アプリ情報を設定
+    lastUpdatedDateSpan.textContent = appInfo.lastUpdated;
+    updateContentSpan.textContent = appInfo.updateLog;
 
     fetch('words.csv')
         .then(response => {
@@ -91,8 +122,30 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(csvText => {
             wordData = parseCSV(csvText);
+            
+            // CSVデータが空の場合はエラーメッセージを表示して処理を中断
+            if (wordData.length === 0) {
+                messageText.classList.remove('hidden');
+                messageText.textContent = '単語データが見つからないか、形式が不正です。CSVファイルを確認してください。';
+                messageText.style.color = '#e74c3c';
+                return; // ここで処理を中断
+            }
+
             chapterData = buildChapterData(wordData);
             generateChapterSelection();
+            
+            // 選択状態をロード
+            loadSelection();
+
+            // クイズ進捗をロード
+            loadQuizProgress();
+            
+            // 初期表示で「全て選択」ボタンの状態を更新
+            document.querySelectorAll('.chapter-item').forEach(chapterItem => {
+                const chapterNum = chapterItem.dataset.chapterNum;
+                updateSelectAllButtonState(chapterItem, chapterNum);
+            });
+
         })
         .catch(error => {
             console.error('単語データの読み込みに失敗しました:', error);
@@ -180,19 +233,17 @@ function generateChapterSelection() {
             `;
             unitList.appendChild(unitItem);
             
-            // 各単元チェックボックスの変更イベントにもリスナーを追加
             const unitCheckbox = unitItem.querySelector(`#unit-${chapterNum}-${unitNum}`);
             unitCheckbox.addEventListener('change', () => {
                 updateSelectAllButtonState(chapterItem, chapterNum);
+                saveSelection(); // ★追加★: 選択状態を保存
             });
         }
         chapterItem.appendChild(unitList);
         chaptersContainer.appendChild(chapterItem);
 
-        // 各章の初期状態を反映
         updateSelectAllButtonState(chapterItem, chapterNum);
 
-        // イベントリスナーを追加
         chapterHeader.addEventListener('click', (event) => {
             if (!event.target.closest('.select-all-chapter-btn')) {
                 chapterHeader.classList.toggle('expanded');
@@ -209,22 +260,23 @@ function generateChapterSelection() {
             allUnitCheckboxes.forEach(checkbox => {
                 checkbox.checked = !isAllChecked;
             });
-            // ボタンの状態を更新
             updateSelectAllButtonState(chapterItem, chapterNum);
+            saveSelection(); // ★追加★: 選択状態を保存
         });
     }
+
+    // ★追加★: 出題数ラジオボタンの変更時に保存
+    questionCountRadios.forEach(radio => {
+        radio.addEventListener('change', saveSelection);
+    });
 }
 
-// 「全て選択」ボタンの状態を更新する関数
 function updateSelectAllButtonState(chapterItemElement, chapterNum) {
     const allUnitCheckboxes = chapterItemElement.querySelectorAll('.unit-list input[type="checkbox"]');
     const selectAllButton = chapterItemElement.querySelector('.select-all-chapter-btn');
     
-    // 現在チェックされている単元の数をカウント
     const checkedCount = Array.from(allUnitCheckboxes).filter(cb => cb.checked).length;
     
-    // 章の全ての単元がチェックされているか、または一つもチェックされていないか
-    // 全て選択された状態: 全てのチェックボックスがチェックされている
     const isAllSelected = checkedCount === allUnitCheckboxes.length && allUnitCheckboxes.length > 0;
     
     if (isAllSelected) {
@@ -234,6 +286,98 @@ function updateSelectAllButtonState(chapterItemElement, chapterNum) {
     }
 }
 
+
+// ----------------------------------------------------
+// ローカルストレージ関連関数
+// ----------------------------------------------------
+
+function saveSelection() {
+    const selectedUnitNumbers = Array.from(document.querySelectorAll('.unit-list input[type="checkbox"]:checked'))
+                                           .map(checkbox => checkbox.value);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.SELECTED_UNITS, JSON.stringify(selectedUnitNumbers));
+
+    const selectedCount = document.querySelector('input[name="questionCount"]:checked').value;
+    localStorage.setItem(LOCAL_STORAGE_KEYS.QUESTION_COUNT, selectedCount);
+}
+
+function loadSelection() {
+    const savedUnits = localStorage.getItem(LOCAL_STORAGE_KEYS.SELECTED_UNITS);
+    if (savedUnits) {
+        const selectedUnitNumbers = JSON.parse(savedUnits);
+        document.querySelectorAll('.unit-list input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = selectedUnitNumbers.includes(checkbox.value);
+        });
+        // 選択状態をロードした後、各章の「全て選択」ボタンの状態を更新
+        document.querySelectorAll('.chapter-item').forEach(chapterItem => {
+            const chapterNum = chapterItem.dataset.chapterNum;
+            updateSelectAllButtonState(chapterItem, chapterNum);
+        });
+    }
+
+    const savedCount = localStorage.getItem(LOCAL_STORAGE_KEYS.QUESTION_COUNT);
+    if (savedCount) {
+        const radio = document.querySelector(`input[name="questionCount"][value="${savedCount}"]`);
+        if (radio) {
+            radio.checked = true;
+        }
+    }
+}
+
+function saveQuizProgress() {
+    const progress = {
+        currentWordIndex: currentWordIndex,
+        correctCount: correctCount,
+        incorrectCount: incorrectCount,
+        incorrectWords: incorrectWords, // 間違った単語のデータも保存
+        wordsForQuiz: wordsForQuiz // 出題単語リストも保存
+    };
+    localStorage.setItem(LOCAL_STORAGE_KEYS.QUIZ_PROGRESS, JSON.stringify(progress));
+}
+
+function loadQuizProgress() {
+    const savedProgress = localStorage.getItem(LOCAL_STORAGE_KEYS.QUIZ_PROGRESS);
+    if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        
+        // 保存された wordsForQuiz の単語が、現在の wordData に存在するか検証
+        // データ構造が変わった場合や、CSVが更新された場合に備える
+        const isValidProgress = progress.wordsForQuiz && progress.wordsForQuiz.every(savedWord => 
+            wordData.some(currentWord => 
+                currentWord.chapter === savedWord.chapter && 
+                currentWord.number === savedWord.number &&
+                currentWord.question === savedWord.question // 質問内容も一致するか確認
+            )
+        );
+
+        if (isValidProgress && progress.wordsForQuiz.length > 0 && progress.currentWordIndex < progress.wordsForQuiz.length) {
+            if (confirm('前回の学習の続きから再開しますか？')) {
+                currentWordIndex = progress.currentWordIndex;
+                correctCount = progress.correctCount;
+                incorrectCount = progress.incorrectCount;
+                incorrectWords = progress.incorrectWords || []; // nullの場合を考慮
+                wordsForQuiz = progress.wordsForQuiz;
+                
+                // 再開時に「もう1回」ボタンのために lastSelectedUnitNumbers と lastSelectedQuestionCount を設定
+                // ただし、これらの情報はwordsForQuizからは直接導き出せないため、厳密な復元は難しい。
+                // ここでは、wordsForQuizから最も関連性の高いunitNumberを抽出し、それらをlastSelectedUnitNumbersに設定します。
+                // lastSelectedQuestionCount は wordsForQuiz の長さに基づいて 'all' または数値で復元します。
+                lastSelectedUnitNumbers = Array.from(new Set(wordsForQuiz.map(word => word.number)));
+                lastSelectedQuestionCount = (wordsForQuiz.length === selectedWords.length) ? 'all' : wordsForQuiz.length.toString();
+
+                showCardArea();
+                displayCurrentWord();
+            } else {
+                clearQuizProgress(); // 再開しない場合は進捗をクリア
+            }
+        } else {
+            clearQuizProgress(); // 不正なデータの場合はクリア
+        }
+    }
+}
+
+function clearQuizProgress() {
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.QUIZ_PROGRESS);
+}
 
 // ----------------------------------------------------
 // イベントリスナーの追加
@@ -256,6 +400,12 @@ startButton.addEventListener('click', () => {
     }
 
     let selectedCount = document.querySelector('input[name="questionCount"]:checked').value;
+    
+    // 最後に選択された範囲と問題数を保存 (ここではlastSelectedUnitNumbersとlastSelectedQuestionCountにも代入)
+    lastSelectedUnitNumbers = selectedUnitNumbers;
+    lastSelectedQuestionCount = selectedCount;
+    saveSelection(); // ここで現在の選択を保存
+
     shuffleArray(selectedWords);
 
     if (selectedCount === 'all') {
@@ -267,6 +417,13 @@ startButton.addEventListener('click', () => {
             alert(`選択された単語が${count}問に満たないため、${wordsForQuiz.length}問出題します。`);
         }
     }
+    
+    // wordsForQuiz が空になるケースの対処
+    if (wordsForQuiz.length === 0) {
+        alert('選択された範囲と出題数で問題を作成できませんでした。');
+        return;
+    }
+
 
     currentWordIndex = 0;
     correctCount = 0;
@@ -275,8 +432,8 @@ startButton.addEventListener('click', () => {
     incorrectWordsContainer.innerHTML = '';
 
     showCardArea();
-    
     displayCurrentWord();
+    saveQuizProgress(); // クイズ開始時にも進捗を保存
 });
 
 showAnswerButton.addEventListener('click', () => {
@@ -289,23 +446,56 @@ showAnswerButton.addEventListener('click', () => {
 correctButton.addEventListener('click', () => {
     correctCount++;
     goToNextWord();
+    saveQuizProgress(); // ★追加★: 正解時にも進捗を保存
 });
 
 incorrectButton.addEventListener('click', () => {
     incorrectCount++;
     incorrectWords.push(wordsForQuiz[currentWordIndex]);
     goToNextWord();
+    saveQuizProgress(); // ★追加★: 不正解時にも進捗を保存
 });
 
 backToSelectionButton.addEventListener('click', () => {
     showSelectionArea();
     incorrectWordsContainer.innerHTML = '';
+    clearQuizProgress(); // ★追加★: 範囲選択に戻る際に進捗をクリア
 });
 
 backToSelectionFromCardButton.addEventListener('click', () => {
     showSelectionArea();
+    clearQuizProgress(); // ★追加★: 範囲選択に戻る際に進捗をクリア
 });
 
+// 「もう1回」ボタンのイベントリスナー
+restartQuizButton.addEventListener('click', () => {
+    // 最後に選択された範囲と問題数を使って学習を再開
+    startQuizWithLastSelection();
+    clearQuizProgress(); // ★追加★: 「もう1回」を開始する際に進捗をクリア
+});
+
+// 「選択リセット」ボタンのイベントリスナー
+resetSelectionButton.addEventListener('click', () => {
+    // 全てのチェックボックスを解除
+    document.querySelectorAll('.unit-list input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    // 全ての「全て選択」ボタンの状態を更新
+    document.querySelectorAll('.chapter-item').forEach(chapterItem => {
+        const chapterNum = chapterItem.dataset.chapterNum;
+        updateSelectAllButtonState(chapterItem, chapterNum);
+    });
+
+    // 出題数をデフォルト（10問）に戻す
+    document.querySelector('input[name="questionCount"][value="10"]').checked = true;
+    saveSelection(); // ★追加★: 選択リセット時にも保存
+    clearQuizProgress(); // ★追加★: 選択リセット時にも進捗をクリア
+});
+
+// iマークのイベントリスナー
+infoIcon.addEventListener('click', () => {
+    infoPanel.classList.toggle('hidden');
+});
 
 // ----------------------------------------------------
 // ヘルパー関数
@@ -387,6 +577,60 @@ function endQuiz() {
 
     messageText.textContent = `学習終了！${totalQuestions}問を学習しました。`;
     messageText.style.color = '#27ae60';
+    clearQuizProgress(); // ★追加★: クイズ終了時にも進捗をクリア
+}
+
+// 最後に選択された範囲と問題数で学習を再開する関数
+function startQuizWithLastSelection() {
+    // ローカルストレージから最新の選択情報をロード
+    const savedUnits = localStorage.getItem(LOCAL_STORAGE_KEYS.SELECTED_UNITS);
+    const savedCount = localStorage.getItem(LOCAL_STORAGE_KEYS.QUESTION_COUNT);
+
+    if (!savedUnits || !savedCount) {
+        alert('前回の学習範囲が見つかりません。範囲選択画面に戻ります。');
+        showSelectionArea();
+        return;
+    }
+
+    lastSelectedUnitNumbers = JSON.parse(savedUnits);
+    lastSelectedQuestionCount = savedCount;
+
+    selectedWords = wordData.filter(word => lastSelectedUnitNumbers.includes(word.number));
+
+    if (selectedWords.length === 0) {
+        alert('選択された範囲に単語がありません。範囲選択画面に戻ります。');
+        showSelectionArea();
+        return;
+    }
+
+    shuffleArray(selectedWords);
+
+    if (lastSelectedQuestionCount === 'all') {
+        wordsForQuiz = [...selectedWords];
+    } else {
+        const count = parseInt(lastSelectedQuestionCount, 10);
+        wordsForQuiz = selectedWords.slice(0, count);
+        if (wordsForQuiz.length < count) {
+            alert(`選択された単語が${count}問に満たないため、${wordsForQuiz.length}問出題します。`);
+        }
+    }
+    
+    // wordsForQuiz が空になるケースの対処
+    if (wordsForQuiz.length === 0) {
+        alert('選択された範囲と出題数で問題を作成できませんでした。');
+        showSelectionArea(); // 問題を作成できなかった場合は選択画面に戻る
+        return;
+    }
+
+    currentWordIndex = 0;
+    correctCount = 0;
+    incorrectCount = 0;
+    incorrectWords = [];
+    incorrectWordsContainer.innerHTML = '';
+
+    showCardArea();
+    displayCurrentWord();
+    saveQuizProgress(); // クイズ開始時にも進捗を保存
 }
 
 
@@ -399,17 +643,27 @@ function shuffleArray(array) {
 
 function parseCSV(csvText) {
     const lines = csvText.trim().split('\n');
+    if (lines.length <= 1) {
+        console.warn("CSVファイルが空か、ヘッダー行のみです。");
+        return [];
+    }
+
     const headers = lines[0].split(',').map(header => header.trim());
 
     const result = [];
     for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim() === '') continue;
+        if (lines[i].trim() === '') continue; // 空行をスキップ
         const values = parseCSVLine(lines[i]);
         const obj = {};
         for (let j = 0; j < headers.length; j++) {
             obj[headers[j]] = values[j] ? values[j].trim() : '';
         }
-        result.push(obj);
+        // 最低限必要なデータ（chapter, number, category, question, answer）があるか確認
+        if (obj.chapter && obj.number && obj.category && obj.question && obj.answer) {
+            result.push(obj);
+        } else {
+            console.warn(`不正なデータ形式の行をスキップしました: ${lines[i]}`);
+        }
     }
     return result;
 }
@@ -424,9 +678,9 @@ function parseCSVLine(line) {
         if (char === '"') {
             if (inQuote && i + 1 < line.length && line[i + 1] === '"') {
                 currentVal += '"';
-                i++;
+                i++; 
             } else {
-                inQuote = !inQuote;
+                inQuote = !inQuote; 
             }
         } else if (char === ',' && !inQuote) {
             values.push(currentVal);
