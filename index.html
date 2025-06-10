@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界史単語帳</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>世界史単語帳</h1>
+            <button id="backToSelectionFromCardButton" class="secondary-button header-back-button hidden">範囲選択に戻る</button>
+        </header>
+
+        <section class="selection-area">
+            <h2>出題範囲を選択</h2>
+
+            <div class="question-count-selection">
+                <h3>出題数を選択</h3>
+                <div class="count-options">
+                    <label class="count-item">
+                        <input type="radio" name="questionCount" value="10" checked> 10問
+                    </label>
+                    <label class="count-item">
+                        <input type="radio" name="questionCount" value="20"> 20問
+                    </label>
+                    <label class="count-item">
+                        <input type="radio" name="questionCount" value="50"> 50問
+                    </label>
+                    <label class="count-item">
+                        <input type="radio" name="questionCount" value="all"> 全問
+                    </label>
+                </div>
+            </div>
+
+            <div class="chapters-container">
+                </div>
+            <button id="startButton">学習開始</button>
+        </section>
+
+        <section class="card-area hidden">
+            <div class="progress-container">
+                <div id="questionNumberDisplay" class="question-number-display">0 / 0 問</div>
+                <div class="progress-bar-outer">
+                    <div id="progressBar" class="progress-bar-inner"></div>
+                </div>
+            </div>
+
+            <div class="card-content-wrapper">
+                <p id="question" class="card-text"></p>
+                <p id="answer" class="card-text hidden"></p>
+            </div>
+            <div class="button-group">
+                <button id="showAnswerButton" class="main-action-button">答えを見る</button>
+                <button id="correctButton" class="score-button correct-button hidden">正解</button>
+                <button id="incorrectButton" class="score-button incorrect-button hidden">不正解</button>
+            </div>
+        </section>
+
+        <section id="quizResult" class="quiz-result hidden">
+            <h3>学習結果</h3>
+            <p><span id="totalQuestionsCount">0</span>問中 <span id="correctCount">0</span>問正解</p>
+            <p>不正解数: <span id="incorrectCount">0</span>問</p>
+            <p>正答率: <span id="accuracyRate">0</span>%</p>
+            
+            <div id="incorrectWordList" class="incorrect-word-list hidden">
+                <h4>間違った問題</h4>
+                <ul id="incorrectWordsContainer">
+                    </ul>
+            </div>
+            <button id="backToSelectionButton" class="secondary-button">範囲選択に戻る</button>
+        </section>
+
+        <p id="message" class="hidden"></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
