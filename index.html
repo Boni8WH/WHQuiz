@@ -18,7 +18,8 @@
                 出題範囲を選択
                 <span id="infoIcon" class="info-icon">ⓘ</span> </h2>
 
-            <div id="infoPanel" class="info-panel hidden"> <h3>アプリ情報</h3>
+            <div id="infoPanel" class="info-panel hidden">
+                <h3>アプリ情報</h3>
                 <p><strong>最終更新日:</strong> <span id="lastUpdatedDate"></span></p>
                 <p><strong>更新内容:</strong> <span id="updateContent"></span></p>
                 <p class="disclaimer">問題の一部は山川出版社の「山川一問一答 世界史」を参考に作成しています。<br>Webページ作成：Kitsuka</p>
@@ -43,7 +44,12 @@
             </div>
 
             <div class="chapters-container">
-                </div>
+            </div>
+
+            <div class="command-input-area">
+                <input type="password" id="commandKeyInput" placeholder="選択不可解除コマンド">
+                <button id="commandKeySubmitButton" class="secondary-button">OK</button>
+            </div>
             <div class="selection-buttons">
                 <button id="startButton">学習開始</button>
                 <button id="resetSelectionButton" class="secondary-button">選択リセット</button>
