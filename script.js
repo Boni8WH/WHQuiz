@@ -519,7 +519,7 @@ infoIcon.addEventListener('click', () => {
 // ★追加箇所★: コマンドキー入力ボタンのイベントリスナー
 commandKeySubmitButton.addEventListener('click', () => {
     const enteredKey = commandKeyInput.value.trim();
-    if (enteredKey === 'Avignon1309') {
+    if (enteredKey === 'bonifatius8') {
         // 全ての単元を有効化する
         // wordDataの各単語のenabledフラグを'1'に更新
         wordData.forEach(word => {

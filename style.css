@@ -23,11 +23,18 @@ body {
 
 header {
     position: relative;
+    /* header を flexbox にして子要素の配置を制御 */
+    display: flex;
+    align-items: center; /* 垂直方向中央揃え */
+    justify-content: center; /* h1 を中央に配置 */
+    /* ★修正箇所★: header の高さ調整（h1のmargin-bottom分をpaddingで確保） */
+    padding-bottom: 25px; 
 }
 
 h1 {
     color: #2c3e50;
-    margin-bottom: 25px;
+    /* ★修正箇所★: flexbox の中央配置を阻害しないように margin を調整 */
+    margin: 0; /* マージンをリセット */
 }
 
 h2 {
@@ -177,12 +184,17 @@ section {
     white-space: pre-wrap;
     max-width: 90%;
     flex-shrink: 0;
+    color: black; /* 質問のデフォルト色 */
 }
 
 #question {
     margin-bottom: 20px;
 }
 
+/* 答えのテキストの色を赤に */
+#answer {
+    color: red;
+}
 
 /* 答えが非表示の時のスタイル */
 .card-text.hidden {
@@ -582,7 +594,7 @@ button:hover {
     background-color: #7f8c8d;
 }
 
-/* ★追加箇所★: コマンドキー入力エリアのスタイル */
+/* コマンドキー入力エリアのスタイル */
 .command-input-area {
     margin-top: 25px;
     margin-bottom: 20px;
