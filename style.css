@@ -57,15 +57,15 @@ section {
 
 /* 学習中の画面に表示される「範囲選択に戻る」ボタンのスタイル */
 .header-back-button {
-    position: absolute;
-    right: -10px; /* ★修正: さらに右外へ移動（ボタンの幅より少し大きめに） */
-    top: -40px;  /* ★修正: 少し上外へ移動 */
+    position: absolute; 
+    right: -80px; /* PC/タブレット用: 右端から外側に押し出す（ボタンの幅より少し大きめに） */
+    top: -15px;  /* PC/タブレット用: 上端から外側に押し出す */
     
     padding: 8px 15px;
     font-size: 0.85em;
     z-index: 10; /* 他の要素より手前に表示されるように */
     white-space: nowrap;
-    flex-shrink: 0;
+    flex-shrink: 0; 
 }
 
 /* iマークのスタイル */
@@ -175,13 +175,13 @@ section {
     height: 200px; 
     padding: 10px 0;
     box-sizing: border-box;
-    padding-left: 5%; 
-    padding-right: 5%; 
+    padding-left: 2%; /* 少し小さくする */
+    padding-right: 2%; /* 少し小さくする */
 }
 
 /* ----- 問題文と答えのテキストスタイル ----- */
 .card-text {
-    font-size: 1.6em;
+    font-size: 1.4em; /* 少し小さくする */
     font-weight: bold;
     margin: 0;
     text-align: left; 
@@ -236,8 +236,8 @@ button:hover {
 .score-button {
     padding: 12px 20px;
     font-size: 1.1em;
-    margin: 10px 10px;
-    width: 120px; /* ボタンの横幅を固定 (必要に応じて値を調整) */
+    margin: 10px 5px; /* 左右のマージンを小さく */
+    /* width: 120px; */ /* 固定幅を解除 */
     box-sizing: border-box; /* paddingを含めてwidthを計算 */
 }
 
@@ -426,9 +426,10 @@ button:hover {
 .button-group {
     display: flex;
     justify-content: center;
+    gap: 10px; /* ボタン間のスペースを少し小さく */
     margin-top: auto; 
     margin-bottom: 0;
-    flex-wrap: wrap;
+    flex-wrap: wrap; 
     width: 100%;
     padding-top: 15px;
     box-sizing: border-box;
@@ -628,4 +629,55 @@ button:hover {
 /* command-input-area 内のボタンにはこの margin-top を適用しない */
 .command-input-area button.secondary-button {
     margin-top: 0;
+}
+
+/* ==================================================================== */
+/* ★レスポンシブデザインのためのメディアクエリ */
+/* ==================================================================== */
+
+/* 画面幅が480px以下の場合 (一般的なスマホ縦向き) */
+@media (max-width: 480px) {
+    .container {
+        width: 95%; /* コンテナの幅を少し広げる */
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .card-content-wrapper {
+        padding-left: 5px; /* 左右のパディングをさらに小さく */
+        padding-right: 5px;
+    }
+
+    .card-text {
+        font-size: 1.25em; /* 問題文のフォントサイズをさらに小さく */
+    }
+
+    .header-back-button {
+        right: -10px; /* ★ユーザーからのご提案を反映 */
+        top: -40px;  /* ★ユーザーからのご提案を反映 */
+        padding: 6px 12px; /* ボタンのパディングも少し小さく */
+        font-size: 0.8em; /* ボタンのフォントサイズも小さく */
+    }
+
+    .button-group {
+        gap: 5px; /* ボタン間のスペースをさらに小さく */
+    }
+
+    .score-button {
+        padding: 10px 15px; /* ボタンのパディングを小さく */
+        font-size: 1em; /* ボタンのフォントサイズを小さく */
+        margin: 5px 3px; /* ボタンのマージンをさらに小さく */
+    }
+}
+
+/* 画面幅が400px以下の場合 (特に細いスマホ、ボタンを縦に並べる) */
+@media (max-width: 400px) {
+    .button-group {
+        flex-direction: column; /* ボタンを縦に並べる */
+        align-items: center; /* 中央揃え */
+    }
+    .score-button {
+        width: 90%; /* ボタンの幅を広げて見やすくする */
+        margin: 5px 0; /* 上下のマージンを調整 */
+    }
 }
