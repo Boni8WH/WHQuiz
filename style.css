@@ -19,30 +19,24 @@ body {
     max-width: 600px;
     min-height: 500px; /* コンテンツの変動によるガタつきを抑えるために最小高さを設定 */
     box-sizing: border-box;
+    position: relative; /* header内の絶対配置の基準となる */
 }
 
 header {
-    position: relative;
+    position: relative; /* 子要素の絶対配置の基準となる */
     display: flex;
-    /* ★修正箇所★: h1とボタンを左右に配置 */
-    justify-content: space-between; 
-    /* ★修正箇所★: 上揃え */
+    justify-content: center; 
     align-items: flex-start; 
-    /* ★修正箇所★: header全体の下マージンを設定 */
     padding-bottom: 0; 
     margin-bottom: 25px; 
 }
 
 h1 {
     color: #2c3e50;
-    /* ★修正箇所★: テキストを左寄せにする */
-    text-align: left; 
-    /* ★修正箇所★: マージンを調整 */
+    text-align: center; 
     margin: 0; 
-    /* 必要であれば h1 の右側に少しスペース */
-    margin-right: 15px; 
-    flex-shrink: 1; /* 内容に応じて縮むことを許可 */
-    min-width: fit-content; /* タイトルが最低限の幅を保持するように */
+    flex-shrink: 1; 
+    min-width: fit-content; 
 }
 
 h2 {
@@ -63,20 +57,15 @@ section {
 
 /* 学習中の画面に表示される「範囲選択に戻る」ボタンのスタイル */
 .header-back-button {
-    /* ★修正箇所★: absolute を解除し、flexbox 内で配置 */
-    position: static; 
-    /* top, right, transform は不要になるので削除 */
-    /* top: 50%; */
-    /* right: 0px; */
-    /* transform: translateY(-50%); */
+    position: absolute;
+    right: -10px; /* ★修正: さらに右外へ移動（ボタンの幅より少し大きめに） */
+    top: -40px;  /* ★修正: 少し上外へ移動 */
     
     padding: 8px 15px;
     font-size: 0.85em;
-    z-index: 10;
+    z-index: 10; /* 他の要素より手前に表示されるように */
     white-space: nowrap;
-    /* ★追加箇所★: 右端に寄せるためのマージン */
-    margin-left: auto; 
-    flex-shrink: 0; /* ボタンが縮まないようにする */
+    flex-shrink: 0;
 }
 
 /* iマークのスタイル */
@@ -132,17 +121,18 @@ section {
 
 /* ----- 単語カード表示エリアのスタイル ----- */
 .card-area {
-    min-height: 280px;
+    min-height: 280px; /* 最小高さを確保し、内容が少ない場合でも形を保つ */
+    height: 380px; /* 高さを固定する */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between; /* 子要素を上下に均等配置 */
     align-items: center;
     margin-top: 20px;
     border: 2px solid #bdc3c7;
     border-radius: 8px;
     padding: 20px;
     box-sizing: border-box;
-    position: relative;
+    position: relative; /* 子要素の絶対配置の基準となる */
 }
 
 /* ----- 進捗表示のスタイル ----- */
@@ -177,15 +167,16 @@ section {
 
 /* ----- 問題と答えのラッパーのスタイル ----- */
 .card-content-wrapper {
-    flex-grow: 1;
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    align-items: flex-start;    
     width: 100%;
-    min-height: 150px;
+    height: 200px; 
     padding: 10px 0;
     box-sizing: border-box;
+    padding-left: 5%; 
+    padding-right: 5%; 
 }
 
 /* ----- 問題文と答えのテキストスタイル ----- */
@@ -193,21 +184,24 @@ section {
     font-size: 1.6em;
     font-weight: bold;
     margin: 0;
-    text-align: center;
+    text-align: left; 
     word-wrap: break-word;
     white-space: pre-wrap;
-    max-width: 90%;
+    max-width: 100%; 
     flex-shrink: 0;
-    color: black; /* 質問のデフォルト色 */
+    color: black; 
+    overflow-y: auto; 
+    max-height: 100%; 
 }
 
 #question {
-    margin-bottom: 20px;
+    margin-bottom: 10px; /* 問題文の下に固定の余白 */
 }
 
 /* 答えのテキストの色を赤に */
 #answer {
     color: red;
+    margin-top: 10px; /* 答えの上に固定の余白 */
 }
 
 /* 答えが非表示の時のスタイル */
@@ -243,6 +237,8 @@ button:hover {
     padding: 12px 20px;
     font-size: 1.1em;
     margin: 10px 10px;
+    width: 120px; /* ボタンの横幅を固定 (必要に応じて値を調整) */
+    box-sizing: border-box; /* paddingを含めてwidthを計算 */
 }
 
 /* 正解ボタン */
@@ -430,16 +426,12 @@ button:hover {
 .button-group {
     display: flex;
     justify-content: center;
-    margin-top: auto;
+    margin-top: auto; 
     margin-bottom: 0;
     flex-wrap: wrap;
     width: 100%;
     padding-top: 15px;
     box-sizing: border-box;
-}
-
-.button-group button {
-    margin: 5px 10px;
 }
 
 /* 選択画面のボタン配置用ラッパー */

@@ -47,10 +47,12 @@ const infoPanel = document.getElementById('infoPanel');
 const lastUpdatedDateSpan = document.getElementById('lastUpdatedDate');
 const updateContentSpan = document.getElementById('updateContent');
 
-// ★追加箇所★: コマンドキー関連の要素を取得
+// コマンドキー関連の要素を取得
 const commandKeyInput = document.getElementById('commandKeyInput');
 const commandKeySubmitButton = document.getElementById('commandKeySubmitButton');
-// ★追加箇所ここまで★
+
+// ★修正: h1要素を取得
+const mainTitle = document.querySelector('h1');
 
 let wordData = []; // CSVから読み込んだ全単語データ
 let chapterData = {}; // 章と単元で整理された単語データ
@@ -69,8 +71,8 @@ let lastSelectedQuestionCount = '10';
 
 // アプリ情報のデータ
 const appInfo = {
-    lastUpdated: '2025年6月10日', // 今日の日付を記載
-    updateLog: '全１９章中、第７章まで実装' // 今回の更新内容を記載
+    lastUpdated: '2025年6月10日', // アプリ最終更新日
+    updateLog: '全19章中、第7章までリリース' // 今回の更新内容を記載
 };
 
 
@@ -85,7 +87,9 @@ function showSelectionArea() {
     messageText.textContent = '';
     startButton.textContent = '学習開始';
     backToSelectionFromCardButton.classList.add('hidden');
-    infoPanel.classList.add('hidden'); // 選択画面に戻る際に情報パネルを非表示にする
+    infoPanel.classList.add('hidden');
+    // ★修正: 選択画面に戻る際にh1を表示
+    mainTitle.classList.remove('hidden'); 
 }
 
 function showCardArea() {
@@ -95,7 +99,9 @@ function showCardArea() {
     messageText.classList.add('hidden');
     messageText.textContent = '';
     backToSelectionFromCardButton.classList.remove('hidden');
-    infoPanel.classList.add('hidden'); // 学習画面に遷移する際に情報パネルを非表示にする
+    infoPanel.classList.add('hidden');
+    // ★修正: 学習画面に遷移する際にh1を非表示
+    mainTitle.classList.add('hidden'); 
 }
 
 function showQuizResult() {
@@ -104,7 +110,9 @@ function showQuizResult() {
     quizResult.classList.remove('hidden');
     messageText.classList.remove('hidden');
     backToSelectionFromCardButton.classList.add('hidden');
-    infoPanel.classList.add('hidden'); // 結果画面に遷移する際に情報パネルを非表示にする
+    infoPanel.classList.add('hidden');
+    // ★修正: 結果画面に遷移する際にh1を表示
+    mainTitle.classList.remove('hidden'); 
 }
 
 // ----------------------------------------------------
@@ -250,32 +258,39 @@ function generateChapterSelection() {
         chapterItem.appendChild(unitList);
         chaptersContainer.appendChild(chapterItem);
 
+        // chapterItemがDOMに追加された後に状態を更新
         updateSelectAllButtonState(chapterItem, chapterNum);
 
         chapterHeader.addEventListener('click', (event) => {
+            // 「全て選択」ボタンがクリックされた場合は、トグル処理を行わない
             if (!event.target.closest('.select-all-chapter-btn')) {
                 chapterHeader.classList.toggle('expanded');
             }
         });
 
+        // ★修正: selectAllButtonの取得を最適化
         const selectAllButton = chapterHeader.querySelector('.select-all-chapter-btn');
         const hasSelectableUnits = Object.values(chapter.units).some(unit => unit.enabled);
         if (!hasSelectableUnits) {
-            selectAllButton.disabled = true;
-            selectAllButton.textContent = '選択不可'; 
+            if (selectAllButton) { // selectAllButtonが存在することを確認
+                selectAllButton.disabled = true;
+                selectAllButton.textContent = '選択不可'; 
+            }
         } else {
-            selectAllButton.addEventListener('click', (event) => {
-                event.stopPropagation();
-        
-                const allUnitCheckboxes = chapterItem.querySelectorAll('.unit-list input[type="checkbox"]:not([disabled])');
-                const isAllChecked = Array.from(allUnitCheckboxes).every(cb => cb.checked);
-        
-                allUnitCheckboxes.forEach(checkbox => {
-                    checkbox.checked = !isAllChecked;
+            if (selectAllButton) { // selectAllButtonが存在することを確認
+                selectAllButton.addEventListener('click', (event) => {
+                    event.stopPropagation(); // 親要素のクリックイベントが発火しないようにする
+            
+                    const allUnitCheckboxes = chapterItem.querySelectorAll('.unit-list input[type="checkbox"]:not([disabled])');
+                    const isAllChecked = Array.from(allUnitCheckboxes).every(cb => cb.checked);
+            
+                    allUnitCheckboxes.forEach(checkbox => {
+                        checkbox.checked = !isAllChecked;
+                    });
+                    updateSelectAllButtonState(chapterItem, chapterNum);
+                    saveSelection();
                 });
-                updateSelectAllButtonState(chapterItem, chapterNum);
-                saveSelection();
-            });
+            }
         }
     }
 
@@ -365,11 +380,13 @@ function loadQuizProgress() {
     if (savedProgress) {
         const progress = JSON.parse(savedProgress);
         
+        // ★修正: データ検証を強化（answerも含めて一致をチェック）
         const isValidProgress = progress.wordsForQuiz && progress.wordsForQuiz.every(savedWord => 
             wordData.some(currentWord => 
                 currentWord.chapter === savedWord.chapter && 
                 currentWord.number === savedWord.number &&
                 currentWord.question === savedWord.question &&
+                currentWord.answer === savedWord.answer && // 回答もチェック
                 currentWord.enabled === '1'
             )
         );
@@ -391,6 +408,8 @@ function loadQuizProgress() {
                 clearQuizProgress(); // 再開しない場合は進捗をクリア
             }
         } else {
+            // ★修正: 不正なデータの場合のアラートメッセージを改善
+            alert('前回の学習データに問題が見つかりました。新しい学習を開始します。');
             clearQuizProgress(); // 不正なデータの場合はクリア
         }
     }
@@ -440,6 +459,7 @@ startButton.addEventListener('click', () => {
     
     if (wordsForQuiz.length === 0) {
         alert('選択された範囲と出題数で問題を作成できませんでした。有効な単語がありません。');
+        showSelectionArea(); 
         return;
     }
 
@@ -516,10 +536,10 @@ infoIcon.addEventListener('click', () => {
     infoPanel.classList.toggle('hidden');
 });
 
-// ★追加箇所★: コマンドキー入力ボタンのイベントリスナー
+// コマンドキー入力ボタンのイベントリスナー
 commandKeySubmitButton.addEventListener('click', () => {
     const enteredKey = commandKeyInput.value.trim();
-    if (enteredKey === 'bonifatius8') {
+    if (enteredKey === 'Avignon1309') {
         // 全ての単元を有効化する
         // wordDataの各単語のenabledフラグを'1'に更新
         wordData.forEach(word => {
@@ -545,7 +565,6 @@ commandKeySubmitButton.addEventListener('click', () => {
     }
     commandKeyInput.value = ''; // 入力欄をクリア
 });
-// ★追加箇所ここまで★
 
 
 // ----------------------------------------------------
