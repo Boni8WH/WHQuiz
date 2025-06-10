@@ -32,7 +32,7 @@ const questionCountRadios = document.querySelectorAll('input[name="questionCount
 const quizResult = document.getElementById('quizResult');
 const totalQuestionsCountSpan = document.getElementById('totalQuestionsCount');
 const correctCountSpan = document.getElementById('correctCount');
-const incorrectCountSpan = document.getElementById('incorrectCount');
+const incorrectCountSpan = document = document.getElementById('incorrectCount');
 const accuracyRateSpan = document.getElementById('accuracyRate');
 const incorrectWordListSection = document.getElementById('incorrectWordList');
 const incorrectWordsContainer = document.getElementById('incorrectWordsContainer');
@@ -66,7 +66,7 @@ let lastSelectedQuestionCount = '10';
 // アプリ情報のデータ
 const appInfo = {
     lastUpdated: '2025年6月10日', // 今日の日付を記載
-    updateLog: 'リリース：全１９章中７章まで実装' // 今回の更新内容を記載
+    updateLog: 'もう1回ボタンと選択リセットボタンを追加。情報アイコンを実装。' // 今回の更新内容を記載
 };
 
 
@@ -166,6 +166,8 @@ function buildChapterData(data) {
         const chapterNum = word.chapter;
         const unitNum = word.number;
         const unitCategory = word.category;
+        // ★修正点1: enabledフラグを考慮して単元データを構築★
+        const isEnabled = word.enabled === '1'; // CSVからは文字列として読み込まれるため '1' と比較
 
         if (!chapters[chapterNum]) {
             chapters[chapterNum] = {
@@ -176,7 +178,9 @@ function buildChapterData(data) {
         if (!chapters[chapterNum].units[unitNum]) {
             chapters[chapterNum].units[unitNum] = {
                 categoryName: unitCategory,
-                words: []
+                words: [],
+                // 単元が有効かどうかをここに保存
+                enabled: isEnabled // ★追加★
             };
         }
         chapters[chapterNum].units[unitNum].words.push(word);
@@ -225,18 +229,21 @@ function generateChapterSelection() {
 
         for (const unitNum in chapter.units) {
             const unit = chapter.units[unitNum];
+            // ★修正点2: enabledフラグに基づいてチェックボックスをdisabledにする★
+            const isUnitEnabled = unit.enabled; // buildChapterDataで設定されたenabledプロパティ
+
             const unitItem = document.createElement('div');
             unitItem.className = 'unit-item';
             unitItem.innerHTML = `
-                <input type="checkbox" id="unit-${chapterNum}-${unitNum}" value="${unitNum}" data-chapter="${chapterNum}">
-                <label for="unit-${chapterNum}-${unitNum}">${unitNum}. ${unit.categoryName}</label>
+                <input type="checkbox" id="unit-${chapterNum}-${unitNum}" value="${unitNum}" data-chapter="${chapterNum}" ${isUnitEnabled ? '' : 'disabled'}>
+                <label for="unit-${chapterNum}-${unitNum}">${unitNum}. ${unit.categoryName} ${isUnitEnabled ? '' : '(利用不可)'}</label>
             `;
             unitList.appendChild(unitItem);
             
             const unitCheckbox = unitItem.querySelector(`#unit-${chapterNum}-${unitNum}`);
             unitCheckbox.addEventListener('change', () => {
                 updateSelectAllButtonState(chapterItem, chapterNum);
-                saveSelection(); // ★追加★: 選択状態を保存
+                saveSelection(); // 選択状態を保存
             });
         }
         chapterItem.appendChild(unitList);
@@ -251,38 +258,60 @@ function generateChapterSelection() {
         });
 
         const selectAllButton = chapterHeader.querySelector('.select-all-chapter-btn');
-        selectAllButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-
-            const allUnitCheckboxes = chapterItem.querySelectorAll('.unit-list input[type="checkbox"]');
-            const isAllChecked = Array.from(allUnitCheckboxes).every(cb => cb.checked);
-
-            allUnitCheckboxes.forEach(checkbox => {
-                checkbox.checked = !isAllChecked;
+        // ★修正点3: disabledな単元がある場合は「全て選択」ボタンの動作を調整★
+        // ボタンのenabled状態は、その章に一つでも選択可能な単元があるかどうかで判断
+        const hasSelectableUnits = Object.values(chapter.units).some(unit => unit.enabled);
+        if (!hasSelectableUnits) {
+            selectAllButton.disabled = true;
+            selectAllButton.textContent = '選択不可'; // ボタンのテキストも変更
+            selectAllButton.classList.remove('select-all-chapter-btn'); // ホバーエフェクトなどを解除
+            selectAllButton.style.backgroundColor = '#ccc'; // 色をグレーアウト
+            selectAllButton.style.cursor = 'not-allowed';
+        } else {
+            selectAllButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+    
+                const allUnitCheckboxes = chapterItem.querySelectorAll('.unit-list input[type="checkbox"]:not([disabled])'); // disabledではないチェックボックスのみを対象
+                const isAllChecked = Array.from(allUnitCheckboxes).every(cb => cb.checked);
+    
+                allUnitCheckboxes.forEach(checkbox => {
+                    checkbox.checked = !isAllChecked;
+                });
+                updateSelectAllButtonState(chapterItem, chapterNum);
+                saveSelection(); // 選択状態を保存
             });
-            updateSelectAllButtonState(chapterItem, chapterNum);
-            saveSelection(); // ★追加★: 選択状態を保存
-        });
+        }
     }
 
-    // ★追加★: 出題数ラジオボタンの変更時に保存
+    // 出題数ラジオボタンの変更時に保存
     questionCountRadios.forEach(radio => {
         radio.addEventListener('change', saveSelection);
     });
 }
 
 function updateSelectAllButtonState(chapterItemElement, chapterNum) {
-    const allUnitCheckboxes = chapterItemElement.querySelectorAll('.unit-list input[type="checkbox"]');
+    // ★修正点4: disabledなチェックボックスは「全て選択」の判定から除外★
+    const allUnitCheckboxes = chapterItemElement.querySelectorAll('.unit-list input[type="checkbox"]:not([disabled])');
     const selectAllButton = chapterItemElement.querySelector('.select-all-chapter-btn');
     
+    // 選択可能な単元が一つもない場合は、ボタンの状態更新はスキップ
+    if (allUnitCheckboxes.length === 0) {
+        if (selectAllButton) { // selectAllButtonが存在するか確認
+            selectAllButton.classList.remove('selected-all');
+        }
+        return;
+    }
+
     const checkedCount = Array.from(allUnitCheckboxes).filter(cb => cb.checked).length;
     
-    const isAllSelected = checkedCount === allUnitCheckboxes.length && allUnitCheckboxes.length > 0;
+    const isAllSelected = checkedCount === allUnitCheckboxes.length; // allUnitCheckboxes.length > 0 は上記の if で担保
     
-    if (isAllSelected) {
-        selectAllButton.classList.add('selected-all');
-    } else {
-        selectAllButton.classList.remove('selected-all');
+    if (selectAllButton) { // selectAllButtonが存在するか確認
+        if (isAllSelected) {
+            selectAllButton.classList.add('selected-all');
+        } else {
+            selectAllButton.classList.remove('selected-all');
+        }
     }
 }
 
@@ -292,7 +321,8 @@ function updateSelectAllButtonState(chapterItemElement, chapterNum) {
 // ----------------------------------------------------
 
 function saveSelection() {
-    const selectedUnitNumbers = Array.from(document.querySelectorAll('.unit-list input[type="checkbox"]:checked'))
+    // ★修正点5: disabledではないチェックボックスのみを保存対象にする★
+    const selectedUnitNumbers = Array.from(document.querySelectorAll('.unit-list input[type="checkbox"]:checked:not([disabled])'))
                                            .map(checkbox => checkbox.value);
     localStorage.setItem(LOCAL_STORAGE_KEYS.SELECTED_UNITS, JSON.stringify(selectedUnitNumbers));
 
@@ -305,7 +335,12 @@ function loadSelection() {
     if (savedUnits) {
         const selectedUnitNumbers = JSON.parse(savedUnits);
         document.querySelectorAll('.unit-list input[type="checkbox"]').forEach(checkbox => {
-            checkbox.checked = selectedUnitNumbers.includes(checkbox.value);
+            // ★修正点6: disabledなチェックボックスはロード時にもチェックしない★
+            if (!checkbox.disabled) {
+                checkbox.checked = selectedUnitNumbers.includes(checkbox.value);
+            } else {
+                checkbox.checked = false; // disabledなものは強制的にチェックを外す
+            }
         });
         // 選択状態をロードした後、各章の「全て選択」ボタンの状態を更新
         document.querySelectorAll('.chapter-item').forEach(chapterItem => {
@@ -340,12 +375,12 @@ function loadQuizProgress() {
         const progress = JSON.parse(savedProgress);
         
         // 保存された wordsForQuiz の単語が、現在の wordData に存在するか検証
-        // データ構造が変わった場合や、CSVが更新された場合に備える
         const isValidProgress = progress.wordsForQuiz && progress.wordsForQuiz.every(savedWord => 
             wordData.some(currentWord => 
                 currentWord.chapter === savedWord.chapter && 
                 currentWord.number === savedWord.number &&
-                currentWord.question === savedWord.question // 質問内容も一致するか確認
+                currentWord.question === savedWord.question &&
+                currentWord.enabled === '1' // ★追加★: 有効な単語のみ対象
             )
         );
 
@@ -357,10 +392,6 @@ function loadQuizProgress() {
                 incorrectWords = progress.incorrectWords || []; // nullの場合を考慮
                 wordsForQuiz = progress.wordsForQuiz;
                 
-                // 再開時に「もう1回」ボタンのために lastSelectedUnitNumbers と lastSelectedQuestionCount を設定
-                // ただし、これらの情報はwordsForQuizからは直接導き出せないため、厳密な復元は難しい。
-                // ここでは、wordsForQuizから最も関連性の高いunitNumberを抽出し、それらをlastSelectedUnitNumbersに設定します。
-                // lastSelectedQuestionCount は wordsForQuiz の長さに基づいて 'all' または数値で復元します。
                 lastSelectedUnitNumbers = Array.from(new Set(wordsForQuiz.map(word => word.number)));
                 lastSelectedQuestionCount = (wordsForQuiz.length === selectedWords.length) ? 'all' : wordsForQuiz.length.toString();
 
@@ -384,7 +415,8 @@ function clearQuizProgress() {
 // ----------------------------------------------------
 
 startButton.addEventListener('click', () => {
-    const selectedUnitNumbers = Array.from(document.querySelectorAll('.unit-list input[type="checkbox"]:checked'))
+    // ★修正点7: disabledではないチェックボックスのみを考慮★
+    const selectedUnitNumbers = Array.from(document.querySelectorAll('.unit-list input[type="checkbox"]:checked:not([disabled])'))
                                            .map(checkbox => checkbox.value);
 
     if (selectedUnitNumbers.length === 0) {
@@ -392,16 +424,16 @@ startButton.addEventListener('click', () => {
         return;
     }
 
-    selectedWords = wordData.filter(word => selectedUnitNumbers.includes(word.number));
+    // selectedWords も enabled が '1' の単語のみを対象にフィルター
+    selectedWords = wordData.filter(word => selectedUnitNumbers.includes(word.number) && word.enabled === '1');
 
     if (selectedWords.length === 0) {
-        alert('選択された範囲に単語がありません。');
+        alert('選択された範囲に有効な単語がありません。'); // メッセージを調整
         return;
     }
 
     let selectedCount = document.querySelector('input[name="questionCount"]:checked').value;
     
-    // 最後に選択された範囲と問題数を保存 (ここではlastSelectedUnitNumbersとlastSelectedQuestionCountにも代入)
     lastSelectedUnitNumbers = selectedUnitNumbers;
     lastSelectedQuestionCount = selectedCount;
     saveSelection(); // ここで現在の選択を保存
@@ -418,9 +450,8 @@ startButton.addEventListener('click', () => {
         }
     }
     
-    // wordsForQuiz が空になるケースの対処
     if (wordsForQuiz.length === 0) {
-        alert('選択された範囲と出題数で問題を作成できませんでした。');
+        alert('選択された範囲と出題数で問題を作成できませんでした。有効な単語がありません。'); // メッセージを調整
         return;
     }
 
@@ -446,37 +477,37 @@ showAnswerButton.addEventListener('click', () => {
 correctButton.addEventListener('click', () => {
     correctCount++;
     goToNextWord();
-    saveQuizProgress(); // ★追加★: 正解時にも進捗を保存
+    saveQuizProgress(); // 正解時にも進捗を保存
 });
 
 incorrectButton.addEventListener('click', () => {
     incorrectCount++;
     incorrectWords.push(wordsForQuiz[currentWordIndex]);
     goToNextWord();
-    saveQuizProgress(); // ★追加★: 不正解時にも進捗を保存
+    saveQuizProgress(); // 不正解時にも進捗を保存
 });
 
 backToSelectionButton.addEventListener('click', () => {
     showSelectionArea();
     incorrectWordsContainer.innerHTML = '';
-    clearQuizProgress(); // ★追加★: 範囲選択に戻る際に進捗をクリア
+    clearQuizProgress(); // 範囲選択に戻る際に進捗をクリア
 });
 
 backToSelectionFromCardButton.addEventListener('click', () => {
     showSelectionArea();
-    clearQuizProgress(); // ★追加★: 範囲選択に戻る際に進捗をクリア
+    clearQuizProgress(); // 範囲選択に戻る際に進捗をクリア
 });
 
 // 「もう1回」ボタンのイベントリスナー
 restartQuizButton.addEventListener('click', () => {
     // 最後に選択された範囲と問題数を使って学習を再開
     startQuizWithLastSelection();
-    clearQuizProgress(); // ★追加★: 「もう1回」を開始する際に進捗をクリア
+    clearQuizProgress(); // 「もう1回」を開始する際に進捗をクリア
 });
 
 // 「選択リセット」ボタンのイベントリスナー
 resetSelectionButton.addEventListener('click', () => {
-    // 全てのチェックボックスを解除
+    // 全てのチェックボックスを解除 (disabledではないものも含む)
     document.querySelectorAll('.unit-list input[type="checkbox"]').forEach(checkbox => {
         checkbox.checked = false;
     });
@@ -488,8 +519,8 @@ resetSelectionButton.addEventListener('click', () => {
 
     // 出題数をデフォルト（10問）に戻す
     document.querySelector('input[name="questionCount"][value="10"]').checked = true;
-    saveSelection(); // ★追加★: 選択リセット時にも保存
-    clearQuizProgress(); // ★追加★: 選択リセット時にも進捗をクリア
+    saveSelection(); // 選択リセット時にも保存
+    clearQuizProgress(); // 選択リセット時にも進捗をクリア
 });
 
 // iマークのイベントリスナー
@@ -577,7 +608,7 @@ function endQuiz() {
 
     messageText.textContent = `学習終了！${totalQuestions}問を学習しました。`;
     messageText.style.color = '#27ae60';
-    clearQuizProgress(); // ★追加★: クイズ終了時にも進捗をクリア
+    clearQuizProgress(); // クイズ終了時にも進捗をクリア
 }
 
 // 最後に選択された範囲と問題数で学習を再開する関数
@@ -595,10 +626,11 @@ function startQuizWithLastSelection() {
     lastSelectedUnitNumbers = JSON.parse(savedUnits);
     lastSelectedQuestionCount = savedCount;
 
-    selectedWords = wordData.filter(word => lastSelectedUnitNumbers.includes(word.number));
+    // ★修正点8: ここでも enabled が '1' の単語のみを対象にフィルター★
+    selectedWords = wordData.filter(word => lastSelectedUnitNumbers.includes(word.number) && word.enabled === '1');
 
     if (selectedWords.length === 0) {
-        alert('選択された範囲に単語がありません。範囲選択画面に戻ります。');
+        alert('選択された範囲に有効な単語がありません。範囲選択画面に戻ります。'); // メッセージを調整
         showSelectionArea();
         return;
     }
@@ -615,9 +647,8 @@ function startQuizWithLastSelection() {
         }
     }
     
-    // wordsForQuiz が空になるケースの対処
     if (wordsForQuiz.length === 0) {
-        alert('選択された範囲と出題数で問題を作成できませんでした。');
+        alert('選択された範囲と出題数で問題を作成できませんでした。有効な単語がありません。'); // メッセージを調整
         showSelectionArea(); // 問題を作成できなかった場合は選択画面に戻る
         return;
     }
@@ -659,7 +690,12 @@ function parseCSV(csvText) {
             obj[headers[j]] = values[j] ? values[j].trim() : '';
         }
         // 最低限必要なデータ（chapter, number, category, question, answer）があるか確認
+        // enabled列は必須ではないが、存在すれば読み込む
         if (obj.chapter && obj.number && obj.category && obj.question && obj.answer) {
+            // enabled列が存在しない場合はデフォルトで'1' (有効)とする
+            if (obj.enabled === undefined || obj.enabled === null || obj.enabled === '') {
+                obj.enabled = '1';
+            }
             result.push(obj);
         } else {
             console.warn(`不正なデータ形式の行をスキップしました: ${lines[i]}`);
