@@ -182,16 +182,17 @@ h1 {
     background-color: #229a54;
 }
 
-/* ★追加/修正点: 無効化された「全て選択」ボタンのスタイル調整 */
+/* ★再調整点: 無効化された「全て選択」ボタンのスタイル */
 .select-all-chapter-btn:disabled {
-    background-color: #cccccc !important; /* !important で優先度を上げる */
-    color: #666666 !important;
-    cursor: not-allowed !important;
-    box-shadow: none;
-    /* バランス調整のためのパディングとフォントサイズ */
-    padding: 8px 12px !important; /* 他のボタンのパディングに合わせて調整 */
-    font-size: 0.9em; /* 必要に応じてフォントサイズも調整 */
-    /* min-width: 80px;  必要であれば最小幅を設定 */
+    background-color: #d1d8dc; /* 少し明るめのグレーで、元の青に近いつや感を残す */
+    color: #8c8c8c; /* 暗めの文字色でコントラストを確保 */
+    border: none; /* ボーダーは不要 */
+    padding: 8px 12px; /* パディングは統一感を保つ */
+    border-radius: 5px; /* 角丸も維持 */
+    cursor: not-allowed; /* カーソルで無効を伝える */
+    font-size: 0.85em; /* フォントサイズも統一感を保つ */
+    box-shadow: none; /* シャドウは削除して凹凸感をなくす */
+    transition: none; /* ホバー時のトランジションも無効化 */
 }
 
 
@@ -224,7 +225,7 @@ h1 {
     color: #444;
 }
 
-/* ★追加/修正点: 無効化されたチェックボックスとラベルのスタイル */
+/* 無効化されたチェックボックスとラベルのスタイル */
 .unit-item input[type="checkbox"][disabled] {
     opacity: 0.6;
     cursor: not-allowed;
