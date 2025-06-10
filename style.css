@@ -135,8 +135,9 @@ section {
 
 /* ----- 単語カード表示エリアのスタイル ----- */
 .card-area {
-    min-height: 280px; 
-    max-height: 550px; /* ★修正: 最大高さを増やして縦に広がる余裕を与える */
+    height: 450px; /* ★修正: 高さを固定値で大きく設定 */
+    /* min-height: 280px; */ /* コメントアウト */
+    /* max-height: 550px; */ /* コメントアウト */
     display: flex;
     flex-direction: column; 
     justify-content: space-between; 
@@ -193,7 +194,7 @@ section {
     padding-left: 2%; 
     padding-right: 2%; 
     overflow-y: auto; 
-    max-height: calc(100% - 80px); /* ★修正: card-areaの高さからボタンエリアの高さを引いた分を最大にする */
+    max-height: calc(100% - 100px); /* ★修正: card-areaの総高さから、進捗表示とボタンエリアの合計高さを引く */
 }
 
 /* ----- 問題文と答えのテキストスタイル ----- */
@@ -659,6 +660,14 @@ button:hover {
         font-size: 1.8em; 
     }
 
+    .card-area {
+        height: 420px; /* ★修正: タブレット向けに高さを調整 */
+    }
+
+    .card-content-wrapper {
+        max-height: calc(100% - 95px); /* ★修正: タブレット向けに調整 */
+    }
+
     .card-text {
         font-size: 1.3em; 
     }
@@ -693,7 +702,7 @@ button:hover {
     .card-content-wrapper {
         padding-left: 5px; 
         padding-right: 5px;
-        max-height: calc(100% - 70px); /* ★修正: スマホ向けにボタンエリアの高さを考慮して調整 */
+        max-height: calc(100% - 80px); /* ★修正: スマホ向けにボタンエリアの高さを考慮して調整 */
     }
 
     .card-text {
@@ -701,8 +710,7 @@ button:hover {
     }
 
     .card-area {
-        min-height: 250px; 
-        max-height: 450px; /* ★修正: スマホ向けに最大高さを調整 */
+        height: 380px; /* ★修正: スマホ向けに高さを調整 */
         padding: 15px; 
     }
 
