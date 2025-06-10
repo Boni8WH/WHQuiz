@@ -34,6 +34,11 @@ h2 {
     color: #34495e;
     margin-top: 30px;
     margin-bottom: 15px;
+    position: relative; /* iマークを配置するためにposition: relative; を設定 */
+    display: flex; /* iマークとタイトルを横並びにするため */
+    justify-content: center; /* 中央寄せ */
+    align-items: center; /* 垂直方向中央寄せ */
+    gap: 10px; /* タイトルとiマークの間隔 */
 }
 
 /* ----- 各セクションの共通スタイル (selection-area, card-area, quizResult) ----- */
@@ -51,6 +56,57 @@ section {
     font-size: 0.85em;
     z-index: 10;
     white-space: nowrap;
+}
+
+/* ★追加★: iマークのスタイル */
+.info-icon {
+    font-size: 1.2em;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.2s ease;
+}
+
+.info-icon:hover {
+    color: #3498db;
+}
+
+/* ★追加★: 情報パネルのスタイル */
+.info-panel {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    text-align: left;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    color: #333;
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.info-panel h3 {
+    color: #34495e;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    text-align: center;
+}
+
+.info-panel p {
+    margin-bottom: 5px;
+}
+
+.info-panel p:last-child {
+    margin-bottom: 0;
+}
+
+.info-panel .disclaimer {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 15px;
+    border-top: 1px dashed #eee;
+    padding-top: 10px;
+    text-align: center;
 }
 
 /* ----- 単語カード表示エリアのスタイル ----- */
@@ -149,6 +205,9 @@ button {
 button:hover {
     background-color: #2980b9;
 }
+
+/* ここにあった transform: translateY(1px); を削除しました */
+
 
 /* メインアクションボタン（答えを見る） */
 .main-action-button {
@@ -259,7 +318,7 @@ button:hover {
     background-color: #2980b9;
 }
 
-/* ★追加★: 「全て選択」された状態のボタンのスタイル */
+/* 「全て選択」された状態のボタンのスタイル */
 .select-all-chapter-btn.selected-all {
     background-color: #2ecc71; /* 緑色系 */
 }
@@ -346,6 +405,24 @@ button:hover {
     margin: 5px 10px;
 }
 
+/* ★追加★: 選択画面のボタン配置用ラッパー */
+.selection-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* ボタン間のスペース */
+    margin-top: 20px;
+    flex-wrap: wrap; /* 小さい画面で折り返す */
+}
+
+/* ★追加★: リザルト画面のボタン配置用ラッパー */
+.result-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* ボタン間のスペース */
+    margin-top: 20px;
+    flex-wrap: wrap; /* 小さい画面で折り返す */
+}
+
 /* ----- 範囲選択に戻るボタンのスタイル ----- */
 .secondary-button {
     background-color: #95a5a6;
@@ -355,13 +432,30 @@ button:hover {
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.95em;
-    margin-top: 20px;
+    margin-top: 20px; /* デフォルト値を設定 */
     transition: background-color 0.3s ease;
 }
 
 .secondary-button:hover {
     background-color: #7f8c8d;
 }
+
+/* 個別調整 */
+#backToSelectionButton,
+#startButton,
+#resetSelectionButton,
+#restartQuizButton {
+    margin-top: 0; /* 親要素の flexbox で調整されるためリセット */
+}
+
+/* ★追加★: 「もう1回」ボタンのスタイル */
+#restartQuizButton {
+    background-color: #3498db; /* 学習開始ボタンと同じ色 */
+}
+#restartQuizButton:hover {
+    background-color: #2980b9;
+}
+
 
 /* クイズ結果表示エリアのスタイル */
 #quizResult {
