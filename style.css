@@ -1,5 +1,3 @@
-
-
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
@@ -60,7 +58,7 @@ section {
     white-space: nowrap;
 }
 
-/* ★追加★: iマークのスタイル */
+/* iマークのスタイル */
 .info-icon {
     font-size: 1.2em;
     cursor: pointer;
@@ -72,7 +70,7 @@ section {
     color: #3498db;
 }
 
-/* ★追加★: 情報パネルのスタイル */
+/* 情報パネルのスタイル */
 .info-panel {
     background-color: #f9f9f9;
     border: 1px solid #ddd;
@@ -208,9 +206,6 @@ button:hover {
     background-color: #2980b9;
 }
 
-/* ここにあった transform: translateY(1px); を削除しました */
-
-
 /* メインアクションボタン（答えを見る） */
 .main-action-button {
     background-color: #3498db;
@@ -276,6 +271,7 @@ button:hover {
     font-weight: bold;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
+    justify-content: space-between;
 }
 
 .chapter-header:hover {
@@ -284,6 +280,7 @@ button:hover {
 
 .chapter-header .chapter-title {
     flex-grow: 1;
+    text-align: left;
 }
 
 .chapter-header .toggle-icon {
@@ -314,6 +311,10 @@ button:hover {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    width: 90px; /* ボタンの幅を固定 (例: 90px) */
+    flex-shrink: 0; /* flexアイテムとして縮まないようにする */
+    text-align: center; /* テキストを中央寄せ */
+    box-sizing: border-box; /* paddingを含めてwidthを計算 */
 }
 
 .select-all-chapter-btn:hover {
@@ -327,6 +328,14 @@ button:hover {
 
 .select-all-chapter-btn.selected-all:hover {
     background-color: #27ae60;
+}
+
+/* disabledな「全て選択」ボタンのスタイル調整 */
+.select-all-chapter-btn:disabled {
+    background-color: #ccc; /* 選択不可時の背景色 */
+    color: #666; /* 選択不可時のテキスト色 */
+    cursor: not-allowed;
+    pointer-events: none; /* ホバーイベントを発生させない */
 }
 
 
@@ -407,7 +416,7 @@ button:hover {
     margin: 5px 10px;
 }
 
-/* ★追加★: 選択画面のボタン配置用ラッパー */
+/* 選択画面のボタン配置用ラッパー */
 .selection-buttons {
     display: flex;
     justify-content: center;
@@ -416,7 +425,7 @@ button:hover {
     flex-wrap: wrap; /* 小さい画面で折り返す */
 }
 
-/* ★追加★: リザルト画面のボタン配置用ラッパー */
+/* リザルト画面のボタン配置用ラッパー */
 .result-buttons {
     display: flex;
     justify-content: center;
@@ -450,7 +459,7 @@ button:hover {
     margin-top: 0; /* 親要素の flexbox で調整されるためリセット */
 }
 
-/* ★追加★: 「もう1回」ボタンのスタイル */
+/* 「もう1回」ボタンのスタイル */
 #restartQuizButton {
     background-color: #3498db; /* 学習開始ボタンと同じ色 */
 }
@@ -571,4 +580,34 @@ button:hover {
 
 .show-incorrect-answer-button:hover {
     background-color: #7f8c8d;
+}
+
+/* ★追加箇所★: コマンドキー入力エリアのスタイル */
+.command-input-area {
+    margin-top: 25px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* 入力欄とボタンの間隔 */
+}
+
+.command-input-area input[type="password"] {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    width: 200px; /* 適当な幅 */
+    box-sizing: border-box;
+}
+
+.command-input-area button {
+    margin: 0; /* デフォルトのmarginをリセット */
+    padding: 10px 20px;
+    font-size: 1em;
+}
+
+/* command-input-area 内のボタンにはこの margin-top を適用しない */
+.command-input-area button.secondary-button {
+    margin-top: 0;
 }
