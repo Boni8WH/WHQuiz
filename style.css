@@ -47,25 +47,29 @@ body {
     background-color: #7f8c8d;
 }
 
+/* ヘッダー全体の配置を中央に */
 header {
     display: flex;
-    justify-content: space-between; /* タイトルと進捗を左右に配置 */
-    align-items: flex-start; /* 上揃え */
+    justify-content: center; /* タイトルを中央に配置 */
+    align-items: center; /* 垂直方向中央揃え */
     padding-bottom: 0; 
     margin-bottom: 25px; 
     width: 100%; /* 親要素の幅いっぱいに広げる */
     box-sizing: border-box;
 }
 
+/* h1 (世界史単語帳) のテキストを中央揃えに */
 h1 {
     color: #2c3e50;
-    text-align: left; /* 左寄せ */
+    text-align: center; /* 中央寄せ */
     margin: 0; 
-    flex-grow: 1; /* スペースがあれば広がる */
-    min-width: fit-content; /* 内容に合わせて最小幅を確保 */
-    padding-right: 10px; /* 進捗表示との間隔 */
+    /* flex-growとpadding-rightは不要になったため削除またはコメントアウト */
+    /* flex-grow: 1; */
+    min-width: fit-content; 
+    /* padding-right: 10px; */
 }
 
+/* h2 (出題範囲を選択) とiボタンの配置を中央に */
 h2 {
     color: #34495e;
     margin-top: 30px;
@@ -75,6 +79,8 @@ h2 {
     justify-content: center; /* 中央寄せ */
     align-items: center; /* 垂直方向中央寄せ */
     gap: 10px; /* タイトルとiマークの間隔 */
+    /* padding-rightは不要になったため削除またはコメントアウト */
+    /* padding-right: 25px; */
 }
 
 /* ----- 各セクションの共通スタイル (selection-area, card-area, quizResult) ----- */
@@ -82,12 +88,18 @@ section {
     margin-bottom: 30px;
 }
 
-/* iマークのスタイル */
+/* iマークのスタイルをh2のテキストの隣に調整 */
 .info-icon {
     font-size: 1.2em;
     cursor: pointer;
     color: #555;
     transition: color 0.2s ease;
+    /* 絶対位置指定は不要になったため削除またはコメントアウト */
+    /* position: absolute; */
+    /* right: 0; */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+    margin-left: 5px; /* h2のテキストの右に少し間隔をあけて配置 */
 }
 
 .info-icon:hover {

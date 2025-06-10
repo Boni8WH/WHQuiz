@@ -1,6 +1,3 @@
-
-
-
 // ローカルストレージのキー
 const LOCAL_STORAGE_KEYS = {
     SELECTED_UNITS: 'selectedUnits',
@@ -51,6 +48,13 @@ const infoPanel = document.getElementById('infoPanel');
 const lastUpdatedDateSpan = document.getElementById('lastUpdatedDate');
 const updateContentSpan = document.getElementById('updateContent');
 
+// コマンドキー入力関連の要素
+const commandInput = document.getElementById('commandInput');
+const commandButton = document.getElementById('commandButton');
+
+// コマンドキーの定義
+const COMMAND_KEY = 'Avignon1309';
+
 
 let wordData = []; // CSVから読み込んだ全単語データ
 let chapterData = {}; // 章と単元で整理された単語データ
@@ -70,7 +74,7 @@ let lastSelectedQuestionCount = '10';
 // アプリ情報のデータ
 const appInfo = {
     lastUpdated: '2025年6月10日', // 今日の日付を記載
-    updateLog: 'もう1回ボタンと選択リセットボタンを追加。情報アイコンを実装。' // 今回の更新内容を記載
+    updateLog: 'First Release：全19章中、第7章まで実装' // 今回の更新内容を記載
 };
 
 
@@ -532,6 +536,18 @@ infoIcon.addEventListener('click', () => {
     infoPanel.classList.toggle('hidden');
 });
 
+// コマンドキー入力イベントリスナー
+commandButton.addEventListener('click', () => {
+    handleCommandInput();
+});
+
+commandInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        handleCommandInput();
+    }
+});
+
+
 // ----------------------------------------------------
 // ヘルパー関数
 // ----------------------------------------------------
@@ -731,4 +747,39 @@ function parseCSVLine(line) {
     }
     values.push(currentVal);
     return values;
+}
+
+function handleCommandInput() {
+    const inputKey = commandInput.value.trim();
+    if (inputKey === COMMAND_KEY) {
+        unlockAllUnits();
+        alert('全ての単元のロックが解除されました！');
+        commandInput.value = ''; // 入力フィールドをクリア
+        // 選択画面にいる場合はUIを更新
+        if (!selectionArea.classList.contains('hidden')) {
+            generateChapterSelection(); // UIを再描画して状態を更新
+            loadSelection(); // ロック解除後の選択状態をロード
+        }
+    } else {
+        alert('コマンドキーが正しくありません。');
+        commandInput.value = ''; // 入力フィールドをクリア
+    }
+}
+
+function unlockAllUnits() {
+    // wordData 内のすべての単語の enabled フラグを '1' (有効) に設定
+    wordData.forEach(word => {
+        word.enabled = '1';
+    });
+
+    // chapterData の enabled プロパティも更新
+    for (const chapterNum in chapterData) {
+        for (const unitNum in chapterData[chapterNum].units) {
+            chapterData[chapterNum].units[unitNum].enabled = true;
+        }
+    }
+
+    // ローカルストレージの選択状態をクリアし、再初期化することで、
+    // ロック解除された単元も選択可能になるようにする
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.SELECTED_UNITS);
 }
