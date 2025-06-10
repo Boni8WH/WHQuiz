@@ -72,8 +72,8 @@ let lastSelectedQuestionCount = '10';
 
 // アプリ情報のデータ
 const appInfo = {
-    lastUpdated: '2025年6月10日', // 今日の日付を記載
-    updateLog: 'もう1回ボタンと選択リセットボタンを追加。情報アイコンを実装。' // 今回の更新内容を記載
+    lastUpdated: '2025年6月11日', // 今日の日付を記載
+    updateLog: '初リリース：全19章中、第8章まで実装' // 今回の更新内容を記載
 };
 
 
